@@ -92,6 +92,41 @@ private:
     flow::DirectOutput<int> out_value_;
 };
 
+class Timeout {
+public:
+    Timeout(flow::Engine& engine, double timeout):
+        engine(engine),
+        timeout(timeout)
+    {
+        engine.create_init_poll_callback(
+            std::bind(&Timeout::init, this),
+            std::bind(&Timeout::poll, this));
+    }
+
+private:
+    bool init()
+    {
+        initial_time = engine.get_time();
+        return true;
+    }
+
+    bool poll()
+    {
+        flow::TimePoint time = engine.get_time();
+        flow::Duration duration = time - initial_time;
+        if (duration.elapsed >= timeout) {
+            engine.stop();
+        }
+
+        return true;
+    }
+
+    flow::Engine& engine;
+    const double timeout;
+    flow::TimePoint initial_time;
+};
+
+
 int main()
 {
     flow::Engine engine;
@@ -100,6 +135,7 @@ int main()
     SequenceGenerator b_generator(engine, 1.0 / 4, 0, -5);
     MessageGenerator message_generator(engine, 1.0 / 5);
     MessageViewer message_viewer(engine);
+    Timeout timeout(engine, 5.0);
 
     flow::connect(a_generator.out_value(), message_generator.in_a());
     flow::connect(b_generator.out_value(), message_generator.in_b());
