@@ -43,7 +43,7 @@ add_library(flow SHARED
     src/time.cpp
 )
 target_include_directories(flow PUBLIC include)
-target_link_libraries(flow PUBLIC Threads::Threads cpp_utils parrot sentinel)
+target_link_libraries(flow PUBLIC Threads::Threads cpp-utils parrot sentinel)
 
 
 # Additional targets
